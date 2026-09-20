@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MochaTrade — Wallet</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .wallet-actions { display: flex; gap: 10px; margin-bottom: 28px; flex-wrap: wrap; }
+        .wallet-action-btn {
+            flex: 1; min-width: 120px;
+            padding: 16px; text-align: center;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius); cursor: pointer;
+            transition: var(--transition);
+        }
+        .wallet-action-btn:hover { border-color: rgba(184,240,0,0.25); background: var(--bg-card-hover); }
+        .wallet-action-btn .icon { font-size: 1.4rem; margin-bottom: 6px; }
+        .wallet-action-btn .label { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); }
+        .total-balance { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.03em; color: var(--text-primary); }
+        .balance-card { margin-bottom: 28px; }
+        .address-bar {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 16px; background: var(--bg-input);
+            border-radius: var(--radius-sm); font-family: monospace;
+            font-size: 0.85rem; color: var(--text-secondary);
+            margin-top: 12px; border: 1px solid var(--border);
+        }
+        .address-bar button {
+            background: var(--green); color: #0c0f08; border: none;
+            padding: 4px 12px; border-radius: 100px;
+            cursor: pointer; font-size: 0.72rem; font-weight: 700;
+            white-space: nowrap;
+        }
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            place-items: center;
+        }
+        .modal-overlay.open { display: grid; }
+        .modal {
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 32px; width: 90%; max-width: 440px;
+        }
+        .modal h2 { font-size: 1.2rem; margin-bottom: 20px; color: var(--text-primary); }
+        .modal .close-btn {
+            float: right; background: none; border: none;
+            color: var(--text-muted); font-size: 1.3rem; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="index.html" class="nav-brand">
+            <div class="nav-brand-dot"><svg viewBox="0 0 24 24" fill="none" stroke="#0c0f08" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+            MochaTrade
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="wallet.html" class="active">Wallet</a>
+            <a href="payments.html">Payments</a>
+            <a href="kyc.html">Compliance</a>
+            <a href="trading-engine.html">Trading</a>
+            <a href="market-data.html" class="nav-cta">Market Data</a>
+        </div>
+        <button class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+    </nav>
+
+    <div class="page-header">
+        <div class="breadcrumb"><a href="index.html">Home</a> <span>/</span> <span>Wallet</span></div>
+        <h1>💳 Trading Wallet</h1>
+        <p>Manage your assets, send & receive funds, and view transaction history.</p>
+    </div>
+
+    <div class="main-content">
+        <div class="card balance-card">
+            <div class="flex-between" style="flex-wrap:wrap; gap:20px;">
+                <div>
+                    <div class="stat-label">Total Portfolio Value</div>
+                    <div class="total-balance">$127,849.63</div>
+                    <div class="stat-change up">▲ +2.34% ($2,941.20) today</div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="stat-label">Wallet Address</div>
+                    <div class="address-bar">
+                        <span>0x7a3f...e4b2</span>
+                        <button onclick="copyAddress()">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="wallet-actions">
+            <div class="wallet-action-btn" onclick="openModal('send')">
+                <div class="icon">↗️</div><div class="label">Send</div>
+            </div>
+            <div class="wallet-action-btn" onclick="openModal('receive')">
+                <div class="icon">↙️</div><div class="label">Receive</div>
+            </div>
+            <div class="wallet-action-btn" onclick="openModal('swap')">
+                <div class="icon">🔄</div><div class="label">Swap</div>
+            </div>
+            <div class="wallet-action-btn" onclick="openModal('deposit')">
+                <div class="icon">🏦</div><div class="label">Deposit</div>
+            </div>
+            <div class="wallet-action-btn" onclick="openModal('withdraw')">
+                <div class="icon">💵</div><div class="label">Withdraw</div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="section-title">📦 Assets</div>
+                <div class="asset-row">
+                    <div class="asset-icon" style="background:rgba(247,147,26,0.12); color:#f7931a;">₿</div>
+                    <div class="asset-info"><div class="asset-name">Bitcoin</div><div class="asset-symbol">BTC</div></div>
+                    <div class="asset-value"><div class="asset-amount">1.2450 BTC</div><div class="asset-usd">$74,521.40</div></div>
+                </div>
+                <div class="asset-row">
+                    <div class="asset-icon" style="background:rgba(98,126,234,0.12); color:#627eea;">Ξ</div>
+                    <div class="asset-info"><div class="asset-name">Ethereum</div><div class="asset-symbol">ETH</div></div>
+                    <div class="asset-value"><div class="asset-amount">12.8000 ETH</div><div class="asset-usd">$38,912.00</div></div>
+                </div>
+                <div class="asset-row">
+                    <div class="asset-icon" style="background:rgba(38,161,123,0.12); color:#26a17b;">T</div>
+                    <div class="asset-info"><div class="asset-name">Tether</div><div class="asset-symbol">USDT</div></div>
+                    <div class="asset-value"><div class="asset-amount">10,240.00 USDT</div><div class="asset-usd">$10,240.00</div></div>
+                </div>
+                <div class="asset-row">
+                    <div class="asset-icon" style="background:rgba(153,69,255,0.12); color:#9945ff;">S</div>
+                    <div class="asset-info"><div class="asset-name">Solana</div><div class="asset-symbol">SOL</div></div>
+                    <div class="asset-value"><div class="asset-amount">42.5000 SOL</div><div class="asset-usd">$4,176.23</div></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-title">📜 Recent Transactions</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Type</th><th>Asset</th><th>Amount</th><th>Status</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="pill pill-green">Received</span></td><td>BTC</td><td>+0.0500</td><td><span class="pill pill-green">Confirmed</span></td></tr>
+                            <tr><td><span class="pill pill-red">Sent</span></td><td>ETH</td><td>-2.0000</td><td><span class="pill pill-green">Confirmed</span></td></tr>
+                            <tr><td><span class="pill pill-blue">Swap</span></td><td>SOL → USDT</td><td>10.0000</td><td><span class="pill pill-green">Confirmed</span></td></tr>
+                            <tr><td><span class="pill pill-purple">Deposit</span></td><td>USDT</td><td>+5,000.00</td><td><span class="pill pill-yellow">Pending</span></td></tr>
+                            <tr><td><span class="pill pill-red">Sent</span></td><td>BTC</td><td>-0.1200</td><td><span class="pill pill-green">Confirmed</span></td></tr>
+                            <tr><td><span class="pill pill-green">Received</span></td><td>ETH</td><td>+5.0000</td><td><span class="pill pill-green">Confirmed</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Send Modal -->
+    <div class="modal-overlay" id="modal-send">
+        <div class="modal">
+            <button class="close-btn" onclick="closeModals()">✕</button>
+            <h2>↗️ Send Funds</h2>
+            <div class="input-group"><label>Asset</label><select><option>BTC — Bitcoin</option><option>ETH — Ethereum</option><option>USDT — Tether</option><option>SOL — Solana</option></select></div>
+            <div class="input-group"><label>Recipient Address</label><input class="input" type="text" placeholder="0x... or ENS name"></div>
+            <div class="input-group"><label>Amount</label><input class="input" type="number" placeholder="0.00" step="0.0001"></div>
+            <div class="input-group"><label>Network Fee</label><select><option>Standard — ~15 min ($2.40)</option><option>Fast — ~5 min ($5.80)</option><option>Instant — ~1 min ($12.00)</option></select></div>
+            <button class="btn btn-primary" style="width:100%; justify-content:center; margin-top:8px;" onclick="alert('Transaction submitted!'); closeModals();">Confirm Send</button>
+        </div>
+    </div>
+    <!-- Receive Modal -->
+    <div class="modal-overlay" id="modal-receive">
+        <div class="modal">
+            <button class="close-btn" onclick="closeModals()">✕</button>
+            <h2>↙️ Receive Funds</h2>
+            <div class="input-group"><label>Select Asset</label><select><option>BTC — Bitcoin</option><option>ETH — Ethereum</option><option>USDT — Tether</option><option>SOL — Solana</option></select></div>
+            <div style="text-align:center; margin:20px 0;"><div style="width:160px;height:160px;margin:0 auto;background:var(--bg-input);border-radius:12px;display:grid;place-items:center;font-size:0.85rem;color:var(--text-muted);border:1px solid var(--border);">[ QR Code ]</div></div>
+            <div class="address-bar" style="margin-top:0;"><span style="flex:1; overflow:hidden; text-overflow:ellipsis;">0x7a3f8B92c1D4e5F6a7B8c9D0e1F2a3B4c5D6e4b2</span><button onclick="alert('Address copied!')">Copy</button></div>
+        </div>
+    </div>
+    <!-- Swap Modal -->
+    <div class="modal-overlay" id="modal-swap">
+        <div class="modal">
+            <button class="close-btn" onclick="closeModals()">✕</button>
+            <h2>🔄 Swap Assets</h2>
+            <div class="input-group"><label>From</label><div style="display:flex; gap:8px;"><select style="width:40%;"><option>BTC</option><option>ETH</option><option>USDT</option><option>SOL</option></select><input class="input" type="number" placeholder="0.00" style="width:60%;"></div></div>
+            <div style="text-align:center; margin:12px 0; color:var(--text-muted); font-size:1.2rem;">⇅</div>
+            <div class="input-group"><label>To</label><div style="display:flex; gap:8px;"><select style="width:40%;"><option>USDT</option><option>ETH</option><option>BTC</option><option>SOL</option></select><input class="input" type="number" placeholder="≈ 0.00" style="width:60%;" readonly></div></div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin:8px 0;">Rate: 1 BTC ≈ 59,857.00 USDT · Fee: 0.1%</div>
+            <button class="btn btn-success" style="width:100%; justify-content:center; margin-top:8px;" onclick="alert('Swap executed!'); closeModals();">Swap Now</button>
+        </div>
+    </div>
+    <!-- Deposit Modal -->
+    <div class="modal-overlay" id="modal-deposit">
+        <div class="modal">
+            <button class="close-btn" onclick="closeModals()">✕</button>
+            <h2>🏦 Deposit Funds</h2>
+            <div class="input-group"><label>Payment Method</label><select><option>Bank Transfer (ACH)</option><option>Wire Transfer</option><option>Credit/Debit Card</option></select></div>
+            <div class="input-group"><label>Currency</label><select><option>USD</option><option>EUR</option><option>GBP</option></select></div>
+            <div class="input-group"><label>Amount</label><input class="input" type="number" placeholder="1,000.00"></div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">Processing time: 1-3 business days · No deposit fee</div>
+            <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="alert('Deposit initiated!'); closeModals();">Deposit</button>
+        </div>
+    </div>
+    <!-- Withdraw Modal -->
+    <div class="modal-overlay" id="modal-withdraw">
+        <div class="modal">
+            <button class="close-btn" onclick="closeModals()">✕</button>
+            <h2>💵 Withdraw Funds</h2>
+            <div class="input-group"><label>Withdraw To</label><select><option>Bank Account (****4521)</option><option>PayPal (john@example.com)</option></select></div>
+            <div class="input-group"><label>Currency</label><select><option>USD</option><option>EUR</option><option>GBP</option></select></div>
+            <div class="input-group"><label>Amount</label><input class="input" type="number" placeholder="500.00"></div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">Available: $10,240.00 · Min: $50.00</div>
+            <button class="btn btn-danger" style="width:100%; justify-content:center;" onclick="alert('Withdrawal submitted!'); closeModals();">Withdraw</button>
+        </div>
+    </div>
+
+    <script>
+        function openModal(t) { closeModals(); document.getElementById('modal-'+t).classList.add('open'); }
+        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open')); }
+        document.querySelectorAll('.modal-overlay').forEach(m => { m.addEventListener('click', e => { if(e.target===m) closeModals(); }); });
+        function copyAddress() { navigator.clipboard.writeText('0x7a3f8B92c1D4e5F6a7B8c9D0e1F2a3B4c5D6e4b2'); alert('Address copied!'); }
+        document.addEventListener('keydown', e => { if(e.key==='Escape') closeModals(); });
+    </script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MochaTrade — Payment Partners</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .partner-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px; margin-bottom: 28px;
+        }
+        .partner-status {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.8rem; margin-bottom: 12px;
+        }
+        .partner-status .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .partner-status .dot.active { background: var(--green); box-shadow: 0 0 8px var(--green-glow); }
+        .partner-status .dot.inactive { background: var(--text-muted); }
+        .partner-features { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+        .partner-features span {
+            padding: 3px 10px; border-radius: 100px;
+            font-size: 0.68rem; font-weight: 700;
+            background: var(--bg-input); color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .volume-bar { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+        .volume-bar .bar { flex: 1; height: 6px; background: var(--bg-input); border-radius: 3px; overflow: hidden; }
+        .volume-bar .fill { height: 100%; border-radius: 3px; }
+        .volume-bar .label { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
+        .settlement-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;
+        }
+        .settle-card {
+            padding: 20px; border-radius: var(--radius-sm);
+            background: var(--bg-input); text-align: center; border: 1px solid var(--border);
+        }
+        .settle-value { font-size: 1.5rem; font-weight: 800; margin: 8px 0 4px; color: var(--text-primary); }
+        .settle-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="index.html" class="nav-brand">
+            <div class="nav-brand-dot"><svg viewBox="0 0 24 24" fill="none" stroke="#0c0f08" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+            MochaTrade
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="wallet.html">Wallet</a>
+            <a href="payments.html" class="active">Payments</a>
+            <a href="kyc.html">Compliance</a>
+            <a href="trading-engine.html">Trading</a>
+            <a href="market-data.html" class="nav-cta">Market Data</a>
+        </div>
+        <button class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+    </nav>
+
+    <div class="page-header">
+        <div class="breadcrumb"><a href="index.html">Home</a> <span>/</span> <span>Payments</span></div>
+        <h1>💸 Payment Partners</h1>
+        <p>Integrated payment gateways, fiat on/off ramps, and settlement management.</p>
+    </div>
+
+    <div class="main-content">
+        <div class="stats-row">
+            <div class="stat-card"><div class="stat-label">Total Volume (30d)</div><div class="stat-value">$2.4M</div><div class="stat-change up">▲ +18.3%</div></div>
+            <div class="stat-card"><div class="stat-label">Active Partners</div><div class="stat-value">5</div><div class="stat-change up">▲ +1 new</div></div>
+            <div class="stat-card"><div class="stat-label">Success Rate</div><div class="stat-value text-green">99.2%</div></div>
+            <div class="stat-card"><div class="stat-label">Avg. Settlement</div><div class="stat-value">1.2d</div></div>
+        </div>
+
+        <div class="section-title">🤝 Integrated Partners</div>
+        <div class="partner-grid">
+            <div class="partner-card">
+                <div class="partner-logo" style="background:rgba(99,91,255,0.12); color:#635bff;">S</div>
+                <div class="partner-name">Stripe</div>
+                <div class="partner-status"><span class="dot active"></span> Active — Primary gateway</div>
+                <div class="partner-desc">Card payments, ACH, wire transfers. Supports 135+ currencies.</div>
+                <div class="volume-bar"><div class="bar"><div class="fill" style="width:78%; background:var(--green);"></div></div><div class="label">$1.87M</div></div>
+                <div class="partner-features"><span>Cards</span><span>ACH</span><span>Wire</span><span>Apple Pay</span><span>Google Pay</span></div>
+            </div>
+            <div class="partner-card">
+                <div class="partner-logo" style="background:rgba(0,69,124,0.12); color:#00b4d8;">PP</div>
+                <div class="partner-name">PayPal</div>
+                <div class="partner-status"><span class="dot active"></span> Active — Secondary</div>
+                <div class="partner-desc">PayPal balance, Venmo, and buyer protection coverage.</div>
+                <div class="volume-bar"><div class="bar"><div class="fill" style="width:35%; background:var(--accent-blue);"></div></div><div class="label">$320K</div></div>
+                <div class="partner-features"><span>PayPal</span><span>Venmo</span><span>P2P</span></div>
+            </div>
+            <div class="partner-card">
+                <div class="partner-logo" style="background:rgba(10,46,92,0.12); color:#5c9eed;">RZ</div>
+                <div class="partner-name">Razorpay</div>
+                <div class="partner-status"><span class="dot active"></span> Active — APAC</div>
+                <div class="partner-desc">India & SE-Asia payments, UPI, net banking, and wallets.</div>
+                <div class="volume-bar"><div class="bar"><div class="fill" style="width:22%; background:var(--accent-purple);"></div></div><div class="label">$148K</div></div>
+                <div class="partner-features"><span>UPI</span><span>NetBanking</span><span>Wallets</span><span>Cards</span></div>
+            </div>
+            <div class="partner-card">
+                <div class="partner-logo" style="background:rgba(0,212,112,0.12); color:#00d470;">MP</div>
+                <div class="partner-name">MoonPay</div>
+                <div class="partner-status"><span class="dot active"></span> Active — Fiat on-ramp</div>
+                <div class="partner-desc">Crypto on/off ramp for 80+ cryptocurrencies in 160+ countries.</div>
+                <div class="volume-bar"><div class="bar"><div class="fill" style="width:15%; background:var(--green);"></div></div><div class="label">$62K</div></div>
+                <div class="partner-features"><span>Buy Crypto</span><span>Sell Crypto</span><span>KYC</span></div>
+            </div>
+            <div class="partner-card">
+                <div class="partner-logo" style="background:rgba(255,102,0,0.12); color:#ff8800;">CB</div>
+                <div class="partner-name">Coinbase Commerce</div>
+                <div class="partner-status"><span class="dot inactive"></span> Pending Integration</div>
+                <div class="partner-desc">Accept crypto payments directly. Native blockchain settlement.</div>
+                <div class="volume-bar"><div class="bar"><div class="fill" style="width:0%;"></div></div><div class="label">Setup in progress</div></div>
+                <div class="partner-features"><span>BTC</span><span>ETH</span><span>USDC</span><span>Lightning</span></div>
+            </div>
+            <div class="partner-card" style="display:grid;place-items:center;cursor:pointer;border-style:dashed;border-color:var(--border);" onclick="alert('Partner integration wizard coming soon!')">
+                <div style="text-align:center; color:var(--text-muted);">
+                    <div style="font-size:2rem; margin-bottom:8px;">+</div>
+                    <div style="font-weight:700;">Add Partner</div>
+                    <div style="font-size:0.8rem;">Integrate a new payment provider</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">⚖️ Settlement Overview</div>
+            <div class="card">
+                <div class="settlement-grid">
+                    <div class="settle-card"><div class="settle-label">Pending</div><div class="settle-value" style="color:var(--accent-blue);">$42,180</div></div>
+                    <div class="settle-card"><div class="settle-label">Processing</div><div class="settle-value" style="color:var(--accent-yellow);">$18,500</div></div>
+                    <div class="settle-card"><div class="settle-label">Settled (Today)</div><div class="settle-value text-green">$86,340</div></div>
+                    <div class="settle-card"><div class="settle-label">Failed</div><div class="settle-value text-red">$1,220</div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="flex-between mb-16">
+                <div class="section-title" style="margin-bottom:0;">📋 Payment History</div>
+                <div class="btn-group">
+                    <button class="btn btn-outline btn-sm" onclick="filterTxn('all')">All</button>
+                    <button class="btn btn-outline btn-sm" onclick="filterTxn('success')">Success</button>
+                    <button class="btn btn-outline btn-sm" onclick="filterTxn('pending')">Pending</button>
+                    <button class="btn btn-outline btn-sm" onclick="filterTxn('failed')">Failed</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="table-wrap">
+                    <table id="paymentTable">
+                        <thead><tr><th>Transaction ID</th><th>Partner</th><th>Type</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+                        <tbody>
+                            <tr data-status="success"><td style="font-family:monospace;font-size:0.8rem;">#TXN-00482</td><td>Stripe</td><td>Card Payment</td><td>$1,250.00</td><td><span class="pill pill-green">Success</span></td><td>Sep 18, 2026</td></tr>
+                            <tr data-status="success"><td style="font-family:monospace;font-size:0.8rem;">#TXN-00481</td><td>PayPal</td><td>P2P Transfer</td><td>$450.00</td><td><span class="pill pill-green">Success</span></td><td>Sep 18, 2026</td></tr>
+                            <tr data-status="pending"><td style="font-family:monospace;font-size:0.8rem;">#TXN-00480</td><td>Razorpay</td><td>UPI Payment</td><td>₹85,000</td><td><span class="pill pill-yellow">Pending</span></td><td>Sep 18, 2026</td></tr>
+                            <tr data-status="success"><td style="font-family:monospace;font-size:0.8rem;">#TXN-00479</td><td>MoonPay</td><td>Fiat On-Ramp</td><td>$3,000.00</td><td><span class="pill pill-green">Success</span></td><td>Sep 17, 2026</td></tr>
+                            <tr data-status="failed"><td style="font-family:monospace;font-size:0.8rem;">#TXN-00478</td><td>Stripe</td><td>Wire Transfer</td><td>$12,000.00</td><td><span class="pill pill-red">Failed</span></td><td>Sep 17, 2026</td></tr>
+                            <tr data-status="success"><td style="font-family:monospace;font-size:0.8rem;">#TXN-00477</td><td>Stripe</td><td>ACH Deposit</td><td>$5,000.00</td><td><span class="pill pill-green">Success</span></td><td>Sep 17, 2026</td></tr>
+                            <tr data-status="pending"><td style="font-family:monospace;font-size:0.8rem;">#TXN-00476</td><td>PayPal</td><td>Withdrawal</td><td>$820.00</td><td><span class="pill pill-yellow">Pending</span></td><td>Sep 16, 2026</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function filterTxn(status) {
+            document.querySelectorAll('#paymentTable tbody tr').forEach(row => {
+                row.style.display = (status === 'all' || row.dataset.status === status) ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

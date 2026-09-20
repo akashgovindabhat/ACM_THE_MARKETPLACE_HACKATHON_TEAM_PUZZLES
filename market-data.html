@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MochaTrade — Market Data</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <style>
+        .chart-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+        .chart-tab {
+            padding: 6px 14px; border-radius: 100px;
+            background: var(--bg-input); border: 1px solid var(--border);
+            color: var(--text-muted); font-size: 0.78rem; font-weight: 700;
+            cursor: pointer; transition: var(--transition); font-family: inherit;
+        }
+        .chart-tab:hover, .chart-tab.active {
+            background: var(--bg-card-hover); color: var(--text-primary);
+            border-color: rgba(184,240,0,0.3);
+        }
+        .market-table-row {
+            display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1fr 1.5fr 1fr;
+            padding: 14px 16px; align-items: center;
+            border-bottom: 1px solid rgba(42,52,32,0.3);
+            transition: var(--transition); cursor: pointer;
+        }
+        .market-table-row:hover { background: rgba(34,42,26,0.5); }
+        .market-table-header {
+            font-size: 0.7rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            color: var(--text-muted); cursor: default;
+            border-bottom: 1px solid var(--border);
+        }
+        .market-table-header:hover { background: none; }
+        .sparkline { width: 80px; height: 30px; }
+        .top-mover {
+            padding: 16px; background: var(--bg-card);
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            text-align: center; transition: var(--transition);
+        }
+        .top-mover:hover { border-color: rgba(184,240,0,0.15); }
+        .top-movers-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px; margin-bottom: 28px;
+        }
+        @media (max-width: 768px) {
+            .market-table-row { grid-template-columns: 2fr 1.5fr 1fr; }
+            .market-table-row > :nth-child(4),
+            .market-table-row > :nth-child(5),
+            .market-table-row > :nth-child(6) { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="index.html" class="nav-brand">
+            <div class="nav-brand-dot"><svg viewBox="0 0 24 24" fill="none" stroke="#0c0f08" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+            MochaTrade
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="wallet.html">Wallet</a>
+            <a href="payments.html">Payments</a>
+            <a href="kyc.html">Compliance</a>
+            <a href="trading-engine.html">Trading</a>
+            <a href="market-data.html" class="nav-cta active">Market Data</a>
+        </div>
+        <button class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+    </nav>
+
+    <div class="page-header">
+        <div class="breadcrumb"><a href="index.html">Home</a> <span>/</span> <span>Market Data</span></div>
+        <h1>📊 Market Data</h1>
+        <p>Live prices, interactive charts, trending assets, and global market overview.</p>
+    </div>
+
+    <div class="main-content">
+        <div class="ticker-strip" id="tickerStrip">
+            <div class="ticker-item"><div><div class="ticker-symbol">BTC</div><div class="text-xs text-muted">Bitcoin</div></div><div style="text-align:right;"><div class="ticker-price" id="btcPrice">$59,847.20</div><div class="ticker-change text-green">+2.34%</div></div></div>
+            <div class="ticker-item"><div><div class="ticker-symbol">ETH</div><div class="text-xs text-muted">Ethereum</div></div><div style="text-align:right;"><div class="ticker-price">$3,041.50</div><div class="ticker-change text-green">+1.87%</div></div></div>
+            <div class="ticker-item"><div><div class="ticker-symbol">SOL</div><div class="text-xs text-muted">Solana</div></div><div style="text-align:right;"><div class="ticker-price">$98.24</div><div class="ticker-change text-red">-0.45%</div></div></div>
+            <div class="ticker-item"><div><div class="ticker-symbol">BNB</div><div class="text-xs text-muted">Binance</div></div><div style="text-align:right;"><div class="ticker-price">$312.80</div><div class="ticker-change text-green">+0.92%</div></div></div>
+            <div class="ticker-item"><div><div class="ticker-symbol">XRP</div><div class="text-xs text-muted">Ripple</div></div><div style="text-align:right;"><div class="ticker-price">$0.6120</div><div class="ticker-change text-green">+0.88%</div></div></div>
+            <div class="ticker-item"><div><div class="ticker-symbol">ADA</div><div class="text-xs text-muted">Cardano</div></div><div style="text-align:right;"><div class="ticker-price">$0.4821</div><div class="ticker-change text-green">+3.12%</div></div></div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card"><div class="stat-label">Global Market Cap</div><div class="stat-value">$2.41T</div><div class="stat-change up">▲ +1.8%</div></div>
+            <div class="stat-card"><div class="stat-label">24h Volume</div><div class="stat-value">$98.7B</div><div class="stat-change up">▲ +15.2%</div></div>
+            <div class="stat-card"><div class="stat-label">BTC Dominance</div><div class="stat-value">52.4%</div></div>
+            <div class="stat-card"><div class="stat-label">Fear & Greed</div><div class="stat-value" style="color:var(--accent-yellow);">68</div><div class="stat-change" style="color:var(--accent-yellow);">Greed</div></div>
+        </div>
+
+        <div class="card mb-16">
+            <div class="flex-between mb-16">
+                <div><span class="fw-700" style="font-size:1.1rem;color:var(--text-primary);" id="chartTitle">BTC/USDT</span><span class="text-green fw-700" style="margin-left:10px;" id="chartLivePrice">$59,847.20</span></div>
+                <div class="chart-tabs">
+                    <button class="chart-tab" onclick="updateChartRange('1H',this)">1H</button>
+                    <button class="chart-tab active" onclick="updateChartRange('1D',this)">1D</button>
+                    <button class="chart-tab" onclick="updateChartRange('1W',this)">1W</button>
+                    <button class="chart-tab" onclick="updateChartRange('1M',this)">1M</button>
+                    <button class="chart-tab" onclick="updateChartRange('1Y',this)">1Y</button>
+                </div>
+            </div>
+            <div class="chart-container" style="height:380px;"><canvas id="priceChart"></canvas></div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">🔥 Top Movers (24h)</div>
+            <div class="top-movers-grid">
+                <div class="top-mover"><div class="fw-700" style="color:var(--text-primary);">ADA</div><div class="text-green fw-700" style="font-size:1.2rem;">+3.12%</div><div class="text-xs text-muted">$0.4821</div></div>
+                <div class="top-mover"><div class="fw-700" style="color:var(--text-primary);">LINK</div><div class="text-green fw-700" style="font-size:1.2rem;">+2.89%</div><div class="text-xs text-muted">$14.72</div></div>
+                <div class="top-mover"><div class="fw-700" style="color:var(--text-primary);">BTC</div><div class="text-green fw-700" style="font-size:1.2rem;">+2.34%</div><div class="text-xs text-muted">$59,847</div></div>
+                <div class="top-mover"><div class="fw-700" style="color:var(--text-primary);">MATIC</div><div class="text-green fw-700" style="font-size:1.2rem;">+1.95%</div><div class="text-xs text-muted">$0.8412</div></div>
+                <div class="top-mover"><div class="fw-700" style="color:var(--text-primary);">AVAX</div><div class="text-red fw-700" style="font-size:1.2rem;">-2.10%</div><div class="text-xs text-muted">$26.47</div></div>
+                <div class="top-mover"><div class="fw-700" style="color:var(--text-primary);">DOGE</div><div class="text-red fw-700" style="font-size:1.2rem;">-1.22%</div><div class="text-xs text-muted">$0.0821</div></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="flex-between mb-16">
+                <div class="section-title" style="margin-bottom:0;">📋 All Markets</div>
+                <input class="input" type="text" placeholder="Search assets..." style="max-width:240px;padding:8px 14px;font-size:0.85rem;" oninput="filterMarkets(this.value)">
+            </div>
+            <div class="card" style="padding:0;overflow:hidden;">
+                <div class="market-table-row market-table-header"><span>Asset</span><span>Price</span><span>24h Change</span><span>24h Volume</span><span>Market Cap</span><span>Chart</span></div>
+                <div id="marketTable"></div>
+            </div>
+        </div>
+
+        <div class="card mt-24">
+            <div class="section-title">📊 Trading Volume (7 Days)</div>
+            <div class="chart-container" style="height:260px;"><canvas id="volumeChart"></canvas></div>
+        </div>
+    </div>
+
+    <script>
+        const markets = [
+            {symbol:'BTC',name:'Bitcoin',price:59847.20,change:2.34,volume:'24.1B',cap:'1.17T',color:'#f7931a'},
+            {symbol:'ETH',name:'Ethereum',price:3041.50,change:1.87,volume:'12.8B',cap:'365B',color:'#627eea'},
+            {symbol:'BNB',name:'BNB',price:312.80,change:0.92,volume:'1.2B',cap:'47.8B',color:'#f3ba2f'},
+            {symbol:'SOL',name:'Solana',price:98.24,change:-0.45,volume:'3.4B',cap:'42.1B',color:'#9945ff'},
+            {symbol:'XRP',name:'Ripple',price:0.6120,change:0.88,volume:'1.8B',cap:'33.2B',color:'#00aae4'},
+            {symbol:'ADA',name:'Cardano',price:0.4821,change:3.12,volume:'892M',cap:'17.1B',color:'#0033ad'},
+            {symbol:'AVAX',name:'Avalanche',price:26.47,change:-2.10,volume:'612M',cap:'9.8B',color:'#e84142'},
+            {symbol:'DOGE',name:'Dogecoin',price:0.0821,change:-1.22,volume:'521M',cap:'11.6B',color:'#c3a634'},
+            {symbol:'DOT',name:'Polkadot',price:5.42,change:1.54,volume:'312M',cap:'7.2B',color:'#e6007a'},
+            {symbol:'LINK',name:'Chainlink',price:14.72,change:2.89,volume:'445M',cap:'8.6B',color:'#2a5ada'},
+            {symbol:'MATIC',name:'Polygon',price:0.8412,change:1.95,volume:'389M',cap:'7.8B',color:'#8247e5'},
+            {symbol:'UNI',name:'Uniswap',price:7.84,change:-0.67,volume:'201M',cap:'5.9B',color:'#ff007a'},
+        ];
+        function renderMarketTable(data) {
+            document.getElementById('marketTable').innerHTML = data.map(m => {
+                const cc = m.change>=0 ? 'text-green' : 'text-red';
+                const pre = m.change>=0 ? '+' : '';
+                return `<div class="market-table-row" data-symbol="${m.symbol.toLowerCase()} ${m.name.toLowerCase()}">
+                    <span class="flex-center"><span style="width:32px;height:32px;border-radius:50%;background:${m.color}18;color:${m.color};display:grid;place-items:center;font-weight:700;font-size:0.7rem;flex-shrink:0;">${m.symbol.substring(0,2)}</span><span><span class="fw-700" style="color:var(--text-primary);">${m.symbol}</span> <span class="text-muted text-sm">${m.name}</span></span></span>
+                    <span class="fw-700" style="color:var(--text-primary);">$${m.price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+                    <span class="${cc} fw-700">${pre}${m.change}%</span>
+                    <span class="text-secondary">$${m.volume}</span>
+                    <span class="text-secondary">$${m.cap}</span>
+                    <span><canvas class="sparkline" data-color="${m.change>=0?'#b8f000':'#ff5544'}" data-trend="${m.change>=0?'up':'down'}"></canvas></span>
+                </div>`;
+            }).join('');
+            drawSparklines();
+        }
+        renderMarketTable(markets);
+        function filterMarkets(q) { document.querySelectorAll('#marketTable .market-table-row').forEach(r => { r.style.display = r.dataset.symbol.includes(q.toLowerCase()) ? '' : 'none'; }); }
+        function drawSparklines() {
+            document.querySelectorAll('.sparkline').forEach(c => {
+                const ctx = c.getContext('2d'); c.width=80; c.height=30;
+                const col = c.dataset.color, up = c.dataset.trend==='up', pts = [];
+                let v = 15+(up?-5:5);
+                for(let i=0;i<20;i++) { v+=(Math.random()-(up?0.35:0.65))*3; v=Math.max(2,Math.min(28,v)); pts.push(v); }
+                ctx.beginPath(); ctx.strokeStyle=col; ctx.lineWidth=1.5;
+                pts.forEach((p,i) => { const x=(i/19)*80; i===0?ctx.moveTo(x,30-p):ctx.lineTo(x,30-p); });
+                ctx.stroke();
+            });
+        }
+        function generatePriceData(n, base, vol) {
+            const labels=[], data=[]; let v=base;
+            for(let i=0;i<n;i++) { v+=(Math.random()-0.47)*vol; data.push(v); labels.push(''); }
+            return {labels,data};
+        }
+        let priceChart;
+        function initPriceChart() {
+            const {labels,data} = generatePriceData(96,58500,120);
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            const g = ctx.createLinearGradient(0,0,0,350);
+            g.addColorStop(0,'rgba(184,240,0,0.2)'); g.addColorStop(1,'rgba(184,240,0,0.0)');
+            priceChart = new Chart(ctx, {
+                type:'line', data:{labels, datasets:[{data, borderColor:'#b8f000', backgroundColor:g, borderWidth:2, fill:true, tension:0.4, pointRadius:0, pointHoverRadius:5, pointHoverBackgroundColor:'#b8f000'}]},
+                options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+                    plugins:{legend:{display:false},tooltip:{backgroundColor:'#191e14',borderColor:'#2a3420',borderWidth:1,titleColor:'#f0f2ec',bodyColor:'#f0f2ec',displayColors:false,callbacks:{label:c=>'$'+c.parsed.y.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}}},
+                    scales:{x:{display:false},y:{position:'right',grid:{color:'rgba(42,52,32,0.3)'},ticks:{color:'#6a7260',font:{size:11},callback:v=>'$'+(v/1000).toFixed(1)+'K'}}}
+                }
+            });
+        }
+        function updateChartRange(range, btn) {
+            document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            const cfg = {'1H':[60,59700,20],'1D':[96,58500,120],'1W':[168,55000,300],'1M':[720,48000,500],'1Y':[365,30000,800]};
+            const [n,b,v] = cfg[range]; const {labels,data} = generatePriceData(n,b,v);
+            priceChart.data.labels=labels; priceChart.data.datasets[0].data=data; priceChart.update('none');
+        }
+        function initVolumeChart() {
+            const ctx = document.getElementById('volumeChart').getContext('2d');
+            new Chart(ctx, {
+                type:'bar', data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets:[{data:[14.2,18.5,12.8,22.1,16.4,9.8,11.2], backgroundColor:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((_,i)=>i===3?'rgba(184,240,0,0.7)':'rgba(184,240,0,0.25)'), borderRadius:6, maxBarThickness:48}]},
+                options:{responsive:true,maintainAspectRatio:false,
+                    plugins:{legend:{display:false},tooltip:{backgroundColor:'#191e14',borderColor:'#2a3420',borderWidth:1,titleColor:'#f0f2ec',bodyColor:'#f0f2ec',callbacks:{label:c=>'$'+c.parsed.y+'B'}}},
+                    scales:{x:{grid:{display:false},ticks:{color:'#6a7260',font:{size:12}}},y:{grid:{color:'rgba(42,52,32,0.3)'},ticks:{color:'#6a7260',font:{size:11},callback:v=>'$'+v+'B'}}}
+                }
+            });
+        }
+        function simulateLivePrices() {
+            markets.forEach(m => { m.price += (Math.random()-0.5)*m.price*0.001; });
+            const btc = document.getElementById('btcPrice');
+            if(btc) btc.textContent = '$'+markets[0].price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+            const lp = document.getElementById('chartLivePrice');
+            if(lp) lp.textContent = '$'+markets[0].price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+            document.querySelectorAll('#marketTable .market-table-row').forEach((r,i) => {
+                if(markets[i]) r.children[1].textContent = '$'+markets[i].price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+            });
+            if(priceChart && priceChart.data.datasets[0].data.length < 200) {
+                priceChart.data.labels.push(''); priceChart.data.datasets[0].data.push(markets[0].price); priceChart.update('none');
+            }
+        }
+        initPriceChart(); initVolumeChart();
+        setInterval(simulateLivePrices, 2000);
+    </script>
+</body>
+</html>

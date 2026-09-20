@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MochaTrade — KYC/AML Compliance</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .risk-meter { text-align: center; padding: 24px; }
+        .risk-circle {
+            width: 140px; height: 140px; border-radius: 50%;
+            margin: 0 auto 16px; display: grid; place-items: center; position: relative;
+        }
+        .risk-circle svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+        .risk-score { font-size: 2rem; font-weight: 800; z-index: 1; }
+        .risk-label { font-size: 0.85rem; color: var(--text-secondary); }
+        .verification-level {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px; margin-bottom: 28px;
+        }
+        .level-card {
+            padding: 24px; border-radius: var(--radius);
+            border: 1.5px solid var(--border);
+            text-align: center; transition: var(--transition);
+            cursor: pointer; background: var(--bg-card);
+        }
+        .level-card.active { border-color: var(--green); }
+        .level-card.locked { opacity: 0.6; }
+        .level-icon { font-size: 2rem; margin-bottom: 10px; }
+        .level-name { font-weight: 800; font-size: 1rem; margin-bottom: 4px; color: var(--text-primary); }
+        .level-limit { font-size: 0.8rem; color: var(--text-secondary); }
+        .doc-upload {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius); padding: 40px;
+            text-align: center; cursor: pointer; transition: var(--transition);
+        }
+        .doc-upload:hover { border-color: rgba(184,240,0,0.3); background: rgba(184,240,0,0.03); }
+        .doc-upload input { display: none; }
+        .screening-item {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 16px; border-bottom: 1px solid rgba(42,52,32,0.3);
+        }
+        .screening-item:last-child { border-bottom: none; }
+        .screening-icon {
+            width: 36px; height: 36px; border-radius: 50%;
+            display: grid; place-items: center; font-size: 1rem; flex-shrink: 0;
+        }
+        .check-ok { background: var(--accent-green-dim); }
+        .check-warn { background: var(--accent-yellow-dim); }
+        .check-fail { background: var(--accent-red-dim); }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="index.html" class="nav-brand">
+            <div class="nav-brand-dot"><svg viewBox="0 0 24 24" fill="none" stroke="#0c0f08" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+            MochaTrade
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="wallet.html">Wallet</a>
+            <a href="payments.html">Payments</a>
+            <a href="kyc.html" class="active">Compliance</a>
+            <a href="trading-engine.html">Trading</a>
+            <a href="market-data.html" class="nav-cta">Market Data</a>
+        </div>
+        <button class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+    </nav>
+
+    <div class="page-header">
+        <div class="breadcrumb"><a href="index.html">Home</a> <span>/</span> <span>KYC/AML</span></div>
+        <h1>🛡️ KYC/AML Compliance</h1>
+        <p>Identity verification, anti-money laundering screening, and compliance management.</p>
+    </div>
+
+    <div class="main-content">
+        <div class="stats-row">
+            <div class="stat-card"><div class="stat-label">Verified Users</div><div class="stat-value">12,847</div><div class="stat-change up">▲ +342 this week</div></div>
+            <div class="stat-card"><div class="stat-label">Pending Reviews</div><div class="stat-value" style="color:var(--accent-yellow);">28</div></div>
+            <div class="stat-card"><div class="stat-label">Flagged Accounts</div><div class="stat-value text-red">7</div></div>
+            <div class="stat-card"><div class="stat-label">Approval Rate</div><div class="stat-value text-green">94.8%</div></div>
+        </div>
+
+        <div class="section-title">🏅 Verification Tiers</div>
+        <div class="verification-level">
+            <div class="level-card active">
+                <div class="level-icon">✅</div>
+                <div class="level-name">Basic</div>
+                <div class="level-limit">Up to $10K/month</div>
+                <div class="mt-16"><span class="pill pill-green">Completed</span></div>
+                <div class="text-xs text-muted mt-16">Email + Phone verification</div>
+            </div>
+            <div class="level-card active">
+                <div class="level-icon">✅</div>
+                <div class="level-name">Enhanced</div>
+                <div class="level-limit">Up to $100K/month</div>
+                <div class="mt-16"><span class="pill pill-green">Completed</span></div>
+                <div class="text-xs text-muted mt-16">Gov. ID + Selfie + Address</div>
+            </div>
+            <div class="level-card" style="border-color: rgba(184,240,0,0.3);">
+                <div class="level-icon">🔄</div>
+                <div class="level-name">Institutional</div>
+                <div class="level-limit">Unlimited</div>
+                <div class="mt-16"><span class="pill pill-blue">In Progress</span></div>
+                <div class="text-xs text-muted mt-16">Business docs + AML review</div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <div class="section-title">📋 Institutional Verification Steps</div>
+                <div class="step-list">
+                    <div class="step-item"><div class="step-number step-done">✓</div><div class="step-content"><h4>Company Registration</h4><p>Articles of incorporation verified</p></div></div>
+                    <div class="step-item"><div class="step-number step-done">✓</div><div class="step-content"><h4>Director Identification</h4><p>All directors verified via passport</p></div></div>
+                    <div class="step-item"><div class="step-number step-active">3</div><div class="step-content"><h4>Beneficial Ownership</h4><p>Awaiting UBO declaration document</p></div></div>
+                    <div class="step-item"><div class="step-number step-pending">4</div><div class="step-content"><h4>Source of Funds</h4><p>Bank statements & fund origin proof</p></div></div>
+                    <div class="step-item"><div class="step-number step-pending">5</div><div class="step-content"><h4>Enhanced Due Diligence</h4><p>Final AML/CFT risk assessment</p></div></div>
+                </div>
+                <div class="mt-16">
+                    <div class="progress-bar"><div class="progress-fill" style="width:45%; background:linear-gradient(90deg, var(--green), var(--accent-blue));"></div></div>
+                    <div class="text-xs text-muted" style="margin-top:6px;">45% Complete — 2 of 5 steps remaining</div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card mb-16">
+                    <div class="section-title">📊 AML Risk Score</div>
+                    <div class="risk-meter">
+                        <div class="risk-circle">
+                            <svg width="140" height="140" viewBox="0 0 140 140">
+                                <circle cx="70" cy="70" r="60" fill="none" stroke="var(--bg-input)" stroke-width="10"/>
+                                <circle cx="70" cy="70" r="60" fill="none" stroke="var(--green)" stroke-width="10" stroke-dasharray="377" stroke-dashoffset="87" stroke-linecap="round"/>
+                            </svg>
+                            <div class="risk-score text-green">Low</div>
+                        </div>
+                        <div class="risk-label">Risk Score: 23/100 — Low Risk</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="section-title">🔍 AML Screening Results</div>
+                    <div class="screening-item"><div class="screening-icon check-ok">✓</div><div style="flex:1;"><div class="fw-700" style="color:var(--text-primary);">PEP Screening</div><div class="text-xs text-muted">No politically exposed persons found</div></div><span class="pill pill-green">Clear</span></div>
+                    <div class="screening-item"><div class="screening-icon check-ok">✓</div><div style="flex:1;"><div class="fw-700" style="color:var(--text-primary);">Sanctions Check</div><div class="text-xs text-muted">OFAC, EU, UN sanctions lists — no match</div></div><span class="pill pill-green">Clear</span></div>
+                    <div class="screening-item"><div class="screening-icon check-ok">✓</div><div style="flex:1;"><div class="fw-700" style="color:var(--text-primary);">Adverse Media</div><div class="text-xs text-muted">No negative news articles detected</div></div><span class="pill pill-green">Clear</span></div>
+                    <div class="screening-item"><div class="screening-icon check-warn">!</div><div style="flex:1;"><div class="fw-700" style="color:var(--text-primary);">Transaction Patterns</div><div class="text-xs text-muted">Unusual volume spike on Sep 14 — reviewed</div></div><span class="pill pill-yellow">Flagged</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section mt-24">
+            <div class="section-title">📄 Document Upload</div>
+            <div class="card">
+                <label class="doc-upload" id="dropZone">
+                    <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" multiple>
+                    <div style="font-size:2.5rem; margin-bottom:12px;">📁</div>
+                    <div class="fw-700 mb-8" style="color:var(--text-primary);">Drop files here or click to upload</div>
+                    <div class="text-sm text-muted">Supported: PDF, JPG, PNG — Max 10MB per file</div>
+                </label>
+                <div id="uploadedFiles" class="mt-16"></div>
+            </div>
+        </div>
+
+        <div class="section mt-24">
+            <div class="section-title">📜 Recent Verifications</div>
+            <div class="card">
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>User</th><th>Level</th><th>Document</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+                        <tbody>
+                            <tr><td>john.doe@email.com</td><td>Enhanced</td><td>Passport</td><td><span class="pill pill-green">Approved</span></td><td>Sep 18</td><td><button class="btn btn-outline btn-sm">View</button></td></tr>
+                            <tr><td>alice.w@company.co</td><td>Institutional</td><td>Corp. Docs</td><td><span class="pill pill-yellow">Pending</span></td><td>Sep 18</td><td><button class="btn btn-primary btn-sm">Review</button></td></tr>
+                            <tr><td>bob.smith@mail.io</td><td>Enhanced</td><td>Driver's License</td><td><span class="pill pill-red">Rejected</span></td><td>Sep 17</td><td><button class="btn btn-outline btn-sm">Details</button></td></tr>
+                            <tr><td>sarah.k@startup.ai</td><td>Basic</td><td>Phone + Email</td><td><span class="pill pill-green">Approved</span></td><td>Sep 17</td><td><button class="btn btn-outline btn-sm">View</button></td></tr>
+                            <tr><td>marco.r@fund.com</td><td>Institutional</td><td>AML Report</td><td><span class="pill pill-blue">In Review</span></td><td>Sep 16</td><td><button class="btn btn-primary btn-sm">Review</button></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadedFiles = document.getElementById('uploadedFiles');
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = 'var(--green)'; });
+        dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = ''; });
+        dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.style.borderColor = ''; handleFiles(e.dataTransfer.files); });
+        fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+        function handleFiles(files) {
+            for (const file of files) {
+                const el = document.createElement('div');
+                el.className = 'screening-item';
+                el.innerHTML = `<div class="screening-icon check-ok" style="font-size:0.8rem;">📄</div><div style="flex:1;"><div class="fw-700" style="color:var(--text-primary);">${file.name}</div><div class="text-xs text-muted">${(file.size/1024).toFixed(1)} KB — Uploaded just now</div></div><span class="pill pill-blue">Processing</span>`;
+                uploadedFiles.appendChild(el);
+                setTimeout(() => { el.querySelector('.pill').className = 'pill pill-green'; el.querySelector('.pill').textContent = 'Verified'; }, 2000);
+            }
+        }
+    </script>
+</body>
+</html>

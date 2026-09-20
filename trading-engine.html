@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MochaTrade — Trading Engine</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .trading-layout {
+            display: grid; grid-template-columns: 260px 1fr 320px; gap: 16px;
+        }
+        .pair-selector {
+            padding: 12px 16px; cursor: pointer; border-radius: var(--radius-sm);
+            transition: var(--transition); display: flex; align-items: center; gap: 10px;
+        }
+        .pair-selector:hover, .pair-selector.active { background: var(--bg-card-hover); }
+        .pair-selector .pair-name { font-weight: 700; font-size: 0.9rem; color: var(--text-primary); }
+        .pair-selector .pair-price { font-size: 0.85rem; }
+        .pair-selector .pair-change { font-size: 0.75rem; font-weight: 700; }
+        .order-form-wrap { display: flex; flex-direction: column; gap: 16px; }
+        .order-type-toggle {
+            display: grid; grid-template-columns: 1fr 1fr;
+            border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border);
+        }
+        .order-type-btn {
+            padding: 12px; text-align: center; font-weight: 800; font-size: 0.9rem;
+            cursor: pointer; border: none; font-family: inherit; transition: var(--transition);
+            background: var(--bg-input); color: var(--text-muted);
+        }
+        .order-type-btn.buy-active { background: var(--accent-green-dim); color: var(--accent-green); }
+        .order-type-btn.sell-active { background: var(--accent-red-dim); color: var(--accent-red); }
+        .orderbook-wrapper { max-height: 400px; overflow-y: auto; }
+        .mini-chart {
+            width: 100%; height: 200px; background: var(--bg-input);
+            border-radius: var(--radius-sm); display: flex;
+            align-items: flex-end; padding: 16px; gap: 2px; overflow: hidden;
+        }
+        .mini-chart .bar { flex: 1; border-radius: 2px 2px 0 0; min-width: 3px; transition: height 0.3s; }
+        @media (max-width: 1100px) {
+            .trading-layout { grid-template-columns: 1fr 1fr; }
+            .trading-layout > :first-child { grid-column: 1 / -1; }
+        }
+        @media (max-width: 768px) {
+            .trading-layout { grid-template-columns: 1fr; }
+        }
+        .order-item {
+            padding: 8px 0; border-bottom: 1px solid var(--border);
+            font-size: 0.8rem; transition: opacity 0.25s, transform 0.25s;
+        }
+        .order-item:last-child { border-bottom: none; }
+        .order-item.removing {
+            opacity: 0; transform: translateX(20px);
+        }
+        .empty-orders {
+            text-align: center; padding: 24px 0;
+            color: var(--text-muted); font-size: 0.82rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="index.html" class="nav-brand">
+            <div class="nav-brand-dot"><svg viewBox="0 0 24 24" fill="none" stroke="#0c0f08" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+            MochaTrade
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="wallet.html">Wallet</a>
+            <a href="payments.html">Payments</a>
+            <a href="kyc.html">Compliance</a>
+            <a href="trading-engine.html" class="active">Trading</a>
+            <a href="market-data.html" class="nav-cta">Market Data</a>
+        </div>
+        <button class="nav-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+    </nav>
+
+    <div class="page-header">
+        <div class="breadcrumb"><a href="index.html">Home</a> <span>/</span> <span>Trading Engine</span></div>
+        <h1>⚡ Trading Engine</h1>
+        <p>Place orders, view the order book, and monitor your positions in real-time.</p>
+    </div>
+
+    <div class="main-content">
+        <div class="stats-row">
+            <div class="stat-card"><div class="stat-label">24h Volume</div><div class="stat-value">$48.2M</div><div class="stat-change up">▲ +12.5%</div></div>
+            <div class="stat-card"><div class="stat-label">Open Orders</div><div class="stat-value">3</div></div>
+            <div class="stat-card"><div class="stat-label">Filled Today</div><div class="stat-value text-green">12</div></div>
+            <div class="stat-card"><div class="stat-label">Engine Latency</div><div class="stat-value">2.1ms</div></div>
+        </div>
+
+        <div class="trading-layout">
+            <!-- Pairs -->
+            <div class="card" style="padding:16px;">
+                <div class="section-title" style="font-size:0.82rem;">📋 Markets</div>
+                <input class="input" type="text" placeholder="Search pairs..." style="margin-bottom:12px; padding:8px 12px; font-size:0.8rem;" oninput="filterPairs(this.value)">
+                <div id="pairList">
+                    <div class="pair-selector active" onclick="selectPair(this,'BTC/USDT',59847.20,2.34)"><div style="flex:1;"><div class="pair-name">BTC/USDT</div><div class="pair-price">$59,847.20</div></div><div class="pair-change text-green">+2.34%</div></div>
+                    <div class="pair-selector" onclick="selectPair(this,'ETH/USDT',3041.50,1.87)"><div style="flex:1;"><div class="pair-name">ETH/USDT</div><div class="pair-price">$3,041.50</div></div><div class="pair-change text-green">+1.87%</div></div>
+                    <div class="pair-selector" onclick="selectPair(this,'SOL/USDT',98.24,-0.45)"><div style="flex:1;"><div class="pair-name">SOL/USDT</div><div class="pair-price">$98.24</div></div><div class="pair-change text-red">-0.45%</div></div>
+                    <div class="pair-selector" onclick="selectPair(this,'ADA/USDT',0.4821,3.12)"><div style="flex:1;"><div class="pair-name">ADA/USDT</div><div class="pair-price">$0.4821</div></div><div class="pair-change text-green">+3.12%</div></div>
+                    <div class="pair-selector" onclick="selectPair(this,'DOGE/USDT',0.0821,-1.22)"><div style="flex:1;"><div class="pair-name">DOGE/USDT</div><div class="pair-price">$0.0821</div></div><div class="pair-change text-red">-1.22%</div></div>
+                    <div class="pair-selector" onclick="selectPair(this,'XRP/USDT',0.6120,0.88)"><div style="flex:1;"><div class="pair-name">XRP/USDT</div><div class="pair-price">$0.6120</div></div><div class="pair-change text-green">+0.88%</div></div>
+                    <div class="pair-selector" onclick="selectPair(this,'AVAX/USDT',26.47,-2.10)"><div style="flex:1;"><div class="pair-name">AVAX/USDT</div><div class="pair-price">$26.47</div></div><div class="pair-change text-red">-2.10%</div></div>
+                </div>
+            </div>
+
+            <!-- Chart + Orderbook -->
+            <div>
+                <div class="card mb-16">
+                    <div class="flex-between mb-8">
+                        <div><span class="fw-700" style="color:var(--text-primary);" id="chartPair">BTC/USDT</span><span class="text-sm text-muted" style="margin-left:8px;">1H</span></div>
+                        <div class="btn-group">
+                            <button class="btn btn-outline btn-sm" style="padding:4px 8px;font-size:0.7rem;">1m</button>
+                            <button class="btn btn-outline btn-sm" style="padding:4px 8px;font-size:0.7rem;">5m</button>
+                            <button class="btn btn-outline btn-sm" style="padding:4px 8px;font-size:0.7rem;background:var(--bg-card-hover);">1H</button>
+                            <button class="btn btn-outline btn-sm" style="padding:4px 8px;font-size:0.7rem;">1D</button>
+                        </div>
+                    </div>
+                    <div class="mini-chart" id="miniChart"></div>
+                </div>
+                <div class="card">
+                    <div class="section-title" style="font-size:0.82rem;">📖 Order Book</div>
+                    <div class="orderbook">
+                        <div class="orderbook-row orderbook-header"><span>Price (USDT)</span><span style="text-align:right;">Amount</span><span style="text-align:right;">Total</span></div>
+                        <div class="orderbook-wrapper" id="orderbook">
+                            <div class="orderbook-row"><span class="ask-price">59,892.40</span><span style="text-align:right;">0.2841</span><span style="text-align:right;">17,015</span><div class="bg" style="width:85%;background:var(--accent-red);"></div></div>
+                            <div class="orderbook-row"><span class="ask-price">59,880.10</span><span style="text-align:right;">0.4120</span><span style="text-align:right;">24,670</span><div class="bg" style="width:72%;background:var(--accent-red);"></div></div>
+                            <div class="orderbook-row"><span class="ask-price">59,871.50</span><span style="text-align:right;">1.1240</span><span style="text-align:right;">67,279</span><div class="bg" style="width:60%;background:var(--accent-red);"></div></div>
+                            <div class="orderbook-row"><span class="ask-price">59,862.80</span><span style="text-align:right;">0.0580</span><span style="text-align:right;">3,472</span><div class="bg" style="width:28%;background:var(--accent-red);"></div></div>
+                            <div class="orderbook-row"><span class="ask-price">59,855.00</span><span style="text-align:right;">0.8910</span><span style="text-align:right;">53,326</span><div class="bg" style="width:48%;background:var(--accent-red);"></div></div>
+                            <div class="spread-row"><span class="fw-700" id="spreadPrice" style="color:var(--green);font-size:1rem;">59,847.20</span><span style="margin-left:8px;">Spread: $7.80 (0.01%)</span></div>
+                            <div class="orderbook-row"><span class="bid-price">59,839.40</span><span style="text-align:right;">0.5430</span><span style="text-align:right;">32,521</span><div class="bg" style="width:52%;background:var(--accent-green);"></div></div>
+                            <div class="orderbook-row"><span class="bid-price">59,831.20</span><span style="text-align:right;">1.2480</span><span style="text-align:right;">74,693</span><div class="bg" style="width:78%;background:var(--accent-green);"></div></div>
+                            <div class="orderbook-row"><span class="bid-price">59,820.60</span><span style="text-align:right;">0.3210</span><span style="text-align:right;">19,202</span><div class="bg" style="width:35%;background:var(--accent-green);"></div></div>
+                            <div class="orderbook-row"><span class="bid-price">59,815.00</span><span style="text-align:right;">2.0100</span><span style="text-align:right;">120,228</span><div class="bg" style="width:92%;background:var(--accent-green);"></div></div>
+                            <div class="orderbook-row"><span class="bid-price">59,800.30</span><span style="text-align:right;">0.1890</span><span style="text-align:right;">11,302</span><div class="bg" style="width:20%;background:var(--accent-green);"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Form -->
+            <div>
+                <div class="card mb-16">
+                    <div class="order-type-toggle mb-16">
+                        <button class="order-type-btn buy-active" id="buyBtn" onclick="setOrderType('buy')">BUY</button>
+                        <button class="order-type-btn" id="sellBtn" onclick="setOrderType('sell')">SELL</button>
+                    </div>
+                    <div class="tabs" style="border:none;margin-bottom:12px;">
+                        <button class="tab-btn active" onclick="setOrderMode('limit',this)">Limit</button>
+                        <button class="tab-btn" onclick="setOrderMode('market',this)">Market</button>
+                        <button class="tab-btn" onclick="setOrderMode('stop',this)">Stop-Limit</button>
+                    </div>
+                    <div class="order-form-wrap">
+                        <div class="input-group" style="margin-bottom:10px;"><label>Price (USDT)</label><input class="input" id="orderPrice" type="number" value="59847.20" step="0.01"></div>
+                        <div class="input-group" style="margin-bottom:10px;"><label>Amount (BTC)</label><input class="input" id="orderAmount" type="number" placeholder="0.00" step="0.0001" oninput="calcTotal()"></div>
+                        <div class="input-group" style="margin-bottom:10px;"><label>Total (USDT)</label><input class="input" id="orderTotal" type="number" placeholder="0.00" readonly></div>
+                        <div style="display:flex;gap:6px;">
+                            <button class="btn btn-outline btn-sm" style="flex:1;justify-content:center;" onclick="setPercent(25)">25%</button>
+                            <button class="btn btn-outline btn-sm" style="flex:1;justify-content:center;" onclick="setPercent(50)">50%</button>
+                            <button class="btn btn-outline btn-sm" style="flex:1;justify-content:center;" onclick="setPercent(75)">75%</button>
+                            <button class="btn btn-outline btn-sm" style="flex:1;justify-content:center;" onclick="setPercent(100)">100%</button>
+                        </div>
+                        <button class="btn btn-success" id="submitOrder" style="width:100%;justify-content:center;margin-top:8px;" onclick="placeOrder()">Buy BTC</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="section-title" style="font-size:0.82rem;">📑 Open Orders</div>
+                    <div id="openOrders">
+                        <div class="order-item">
+                            <div class="flex-between"><span class="pill pill-green" style="font-size:0.65rem;">BUY</span><span class="text-muted text-xs">BTC/USDT</span></div>
+                            <div class="flex-between" style="margin-top:6px;"><span>0.1500 BTC @ $59,200</span><button class="btn btn-outline" style="padding:2px 8px;font-size:0.7rem;" onclick="cancelOrder(this)">Cancel</button></div>
+                        </div>
+                        <div class="order-item">
+                            <div class="flex-between"><span class="pill pill-red" style="font-size:0.65rem;">SELL</span><span class="text-muted text-xs">ETH/USDT</span></div>
+                            <div class="flex-between" style="margin-top:6px;"><span>5.0000 ETH @ $3,200</span><button class="btn btn-outline" style="padding:2px 8px;font-size:0.7rem;" onclick="cancelOrder(this)">Cancel</button></div>
+                        </div>
+                        <div class="order-item">
+                            <div class="flex-between"><span class="pill pill-green" style="font-size:0.65rem;">BUY</span><span class="text-muted text-xs">SOL/USDT</span></div>
+                            <div class="flex-between" style="margin-top:6px;"><span>20.0000 SOL @ $92.00</span><button class="btn btn-outline" style="padding:2px 8px;font-size:0.7rem;" onclick="cancelOrder(this)">Cancel</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section mt-24">
+            <div class="section-title">📜 Recent Trades</div>
+            <div class="card">
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Time</th><th>Pair</th><th>Side</th><th>Price</th><th>Amount</th><th>Total</th></tr></thead>
+                        <tbody id="recentTrades">
+                            <tr><td>01:24:12</td><td>BTC/USDT</td><td class="text-green fw-700">Buy</td><td>$59,847.20</td><td>0.0250</td><td>$1,496.18</td></tr>
+                            <tr><td>01:23:58</td><td>BTC/USDT</td><td class="text-red fw-700">Sell</td><td>$59,845.80</td><td>0.1200</td><td>$7,181.50</td></tr>
+                            <tr><td>01:23:41</td><td>ETH/USDT</td><td class="text-green fw-700">Buy</td><td>$3,041.50</td><td>2.5000</td><td>$7,603.75</td></tr>
+                            <tr><td>01:23:22</td><td>BTC/USDT</td><td class="text-green fw-700">Buy</td><td>$59,841.00</td><td>0.5000</td><td>$29,920.50</td></tr>
+                            <tr><td>01:22:59</td><td>SOL/USDT</td><td class="text-red fw-700">Sell</td><td>$98.18</td><td>15.0000</td><td>$1,472.70</td></tr>
+                            <tr><td>01:22:44</td><td>BTC/USDT</td><td class="text-red fw-700">Sell</td><td>$59,838.50</td><td>0.0800</td><td>$4,787.08</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSide = 'buy';
+        const maxBalance = 10240;
+        function generateChart() {
+            const chart = document.getElementById('miniChart'); chart.innerHTML = '';
+            let prev = 58000 + Math.random() * 3000;
+            for (let i = 0; i < 60; i++) {
+                prev += (Math.random() - 0.48) * 200;
+                const bar = document.createElement('div');
+                const height = Math.max(10, ((prev - 56000) / 6000) * 100);
+                bar.className = 'bar';
+                bar.style.height = height + '%';
+                bar.style.background = prev > 59000 ? 'var(--accent-green)' : 'var(--accent-red)';
+                bar.style.opacity = '0.7';
+                chart.appendChild(bar);
+            }
+        }
+        generateChart();
+        function setOrderType(type) {
+            currentSide = type;
+            document.getElementById('buyBtn').className = 'order-type-btn' + (type==='buy' ? ' buy-active' : '');
+            document.getElementById('sellBtn').className = 'order-type-btn' + (type==='sell' ? ' sell-active' : '');
+            document.getElementById('submitOrder').className = type==='buy' ? 'btn btn-success' : 'btn btn-danger';
+            document.getElementById('submitOrder').textContent = (type==='buy' ? 'Buy' : 'Sell') + ' BTC';
+            document.getElementById('submitOrder').style.width = '100%';
+            document.getElementById('submitOrder').style.justifyContent = 'center';
+        }
+        function setOrderMode(mode, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const p = document.getElementById('orderPrice');
+            if (mode==='market') { p.value='Market'; p.readOnly=true; } else { p.value='59847.20'; p.readOnly=false; }
+        }
+        function calcTotal() {
+            const price = parseFloat(document.getElementById('orderPrice').value) || 0;
+            const amount = parseFloat(document.getElementById('orderAmount').value) || 0;
+            document.getElementById('orderTotal').value = (price * amount).toFixed(2);
+        }
+        function setPercent(pct) {
+            const price = parseFloat(document.getElementById('orderPrice').value) || 59847.20;
+            document.getElementById('orderAmount').value = ((maxBalance * (pct/100)) / price).toFixed(4);
+            calcTotal();
+        }
+        function placeOrder() {
+            const amount = document.getElementById('orderAmount').value;
+            const price = document.getElementById('orderPrice').value;
+            if (!amount || parseFloat(amount) <= 0) { alert('Enter an amount'); return; }
+
+            const pair = document.getElementById('chartPair').textContent;
+            const asset = pair.split('/')[0];
+            const side = currentSide;
+            const pillClass = side === 'buy' ? 'pill-green' : 'pill-red';
+            const sideLabel = side.toUpperCase();
+            const priceDisplay = isNaN(parseFloat(price))
+                ? 'Market'
+                : '$' + parseFloat(price).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            const orderEl = document.createElement('div');
+            orderEl.className = 'order-item';
+            orderEl.style.opacity = '0';
+            orderEl.style.transform = 'translateX(-20px)';
+            orderEl.innerHTML = `
+                <div class="flex-between"><span class="pill ${pillClass}" style="font-size:0.65rem;">${sideLabel}</span><span class="text-muted text-xs">${pair}</span></div>
+                <div class="flex-between" style="margin-top:6px;"><span>${parseFloat(amount).toFixed(4)} ${asset} @ ${priceDisplay}</span><button class="btn btn-outline" style="padding:2px 8px;font-size:0.7rem;" onclick="cancelOrder(this)">Cancel</button></div>
+            `;
+
+            const container = document.getElementById('openOrders');
+            /* Remove empty state if present */
+            const empty = container.querySelector('.empty-orders');
+            if (empty) empty.remove();
+
+            container.prepend(orderEl);
+
+            /* Animate in */
+            requestAnimationFrame(() => {
+                orderEl.style.opacity = '1';
+                orderEl.style.transform = 'translateX(0)';
+            });
+
+            /* Update Open Orders stat count */
+            updateOrderCount();
+
+            document.getElementById('orderAmount').value = '';
+            document.getElementById('orderTotal').value = '';
+        }
+        function cancelOrder(btn) {
+            const item = btn.closest('.order-item');
+            if (!item) return;
+            item.classList.add('removing');
+            setTimeout(() => {
+                item.remove();
+                updateOrderCount();
+                /* Show empty state if no orders left */
+                const container = document.getElementById('openOrders');
+                if (!container.querySelector('.order-item')) {
+                    container.innerHTML = '<div class="empty-orders">No open orders</div>';
+                }
+            }, 250);
+        }
+        function updateOrderCount() {
+            const count = document.querySelectorAll('#openOrders .order-item').length;
+            /* Update the Open Orders stat card */
+            const statCards = document.querySelectorAll('.stat-card .stat-value');
+            if (statCards[1]) statCards[1].textContent = count;
+        }
+        function selectPair(el, pair, price, change) {
+            document.querySelectorAll('.pair-selector').forEach(p => p.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('chartPair').textContent = pair;
+            document.getElementById('orderPrice').value = price.toFixed(2);
+            document.getElementById('spreadPrice').textContent = price.toFixed(2);
+            document.getElementById('submitOrder').textContent = (currentSide==='buy' ? 'Buy ' : 'Sell ') + pair.split('/')[0];
+            generateChart();
+        }
+        function filterPairs(q) {
+            document.querySelectorAll('.pair-selector').forEach(p => {
+                p.style.display = p.querySelector('.pair-name').textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+            });
+        }
+        setInterval(() => {
+            document.querySelectorAll('.orderbook-row:not(.orderbook-header)').forEach(row => {
+                const el = row.querySelector('.ask-price, .bid-price');
+                if (el) { let v = parseFloat(el.textContent.replace(/,/g,'')); v += (Math.random()-0.5)*5; el.textContent = v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+            });
+        }, 3000);
+    </script>
+</body>
+</html>
